@@ -23,10 +23,6 @@ AddEventHandler('sikosz_cityhall:open', function()
         SetNuiFocus(true, true)
 end)
 
-RegisterCommand('cityhall', function()
-    TriggerClientEvent('sikosz_cityhall:open')
-end)
-
 RegisterNUICallback('buyItem', function(data, cb)
     TriggerServerEvent('sikosz_cityhall:purchase', data.itemId)
 end)
@@ -66,8 +62,9 @@ Citizen.CreateThread(function()
                     Citizen.Wait(200)
                 end
 
-                elado = CreatePed(4, "a_m_m_prolhost_01", vector3(-548.281311, -191.881317, 37.210205), 172.913391)
+                elado = CreatePed(4, "a_m_m_prolhost_01", config.coords)
                 SetEntityAsMissionEntity(elado)
+                SetEntityHeading(elado, 180.0)
 
                 SetBlockingOfNonTemporaryEvents(elado , true)
 
@@ -77,16 +74,35 @@ Citizen.CreateThread(function()
                 SetEntityInvincible(elado, true)
 
                 TaskStartScenarioInPlace(elado, "WORLD_HUMAN_CLIPBOARD")    
-
                 SetModelAsNoLongerNeeded("a_m_m_prolhost_01") 
-                exports.ox_target:addModel('a_m_m_prolhost_01', {
-                {
-                    icon = 'fas fa-id-card',
-                    label = 'Városháza',
-                    distance = 1.5,
-                    event = 'sikosz_cityhall:open'
-                },
-            })
             end
+    end
+end)
+
+local targetlabel = false
+
+Citizen.CreateThread(function ()
+    while true do
+        Citizen.Wait(5)
+        if not config.oxtarget then
+            if GetDistanceBetweenCoords(GetEntityCoords(GetPlayerPed(-1)),  config.coords, true) < 2 then
+                ESX.Game.Utils.DrawText3D(config.coords, '~b~[E] ~w~gomb a ~b~városháza ~w~megnyitásához!', 0.6)
+                if (IsControlJustReleased(1, 51)) then
+                    TriggerEvent('sikosz_cityhall:open')
+                end
+            end
+        else
+            if not targetlabel then
+                exports.ox_target:addModel('a_m_m_prolhost_01', {
+                    {
+                        icon = 'fas fa-id-card',
+                        label = 'Városháza',
+                        distance = 1.5,
+                        event = 'sikosz_cityhall:open'
+                    },
+                })
+                targetlabel = true
+            end
+        end
     end
 end)
